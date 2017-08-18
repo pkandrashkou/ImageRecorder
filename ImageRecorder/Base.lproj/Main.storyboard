@@ -1,14 +1,18 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="11134" systemVersion="15F34" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="12120" systemVersion="16G29" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11106"/>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12088"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
         <!--View Controller-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController id="BYZ-38-t0r" customClass="ViewController" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="ImageRecorder" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="y3c-jy-aDJ"/>
                         <viewControllerLayoutGuide type="bottom" id="wfy-db-euE"/>
@@ -16,8 +20,59 @@
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="SjC-O4-tRP">
+                                <rect key="frame" x="150" y="102" width="74" height="30"/>
+                                <state key="normal" title="saveImage"/>
+                                <connections>
+                                    <action selector="saveImage:" destination="BYZ-38-t0r" eventType="touchUpInside" id="bTY-vz-0rv"/>
+                                </connections>
+                            </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="frames: 0" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="dXT-ry-V5z">
+                                <rect key="frame" x="151" y="28" width="72.5" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="xOH-g6-zLc">
+                                <rect key="frame" x="139" y="152" width="96" height="30"/>
+                                <state key="normal" title="process video"/>
+                                <connections>
+                                    <action selector="processVideoPressed:" destination="BYZ-38-t0r" eventType="touchUpInside" id="XTu-DP-G5l"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="0Nh-7f-zby">
+                                <rect key="frame" x="147.5" y="202" width="79" height="30"/>
+                                <state key="normal" title="clear cache"/>
+                                <connections>
+                                    <action selector="clearCachePressed:" destination="BYZ-38-t0r" eventType="touchUpInside" id="ba8-cL-09j"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rgr-je-ehu">
+                                <rect key="frame" x="155.5" y="264" width="63" height="30"/>
+                                <state key="normal" title="big video"/>
+                                <connections>
+                                    <action selector="createBigVideo:" destination="BYZ-38-t0r" eventType="touchUpInside" id="oLK-Gi-8tV"/>
+                                </connections>
+                            </button>
+                        </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="SjC-O4-tRP" firstAttribute="top" secondItem="dXT-ry-V5z" secondAttribute="bottom" constant="53" id="8VF-d9-6CH"/>
+                            <constraint firstItem="0Nh-7f-zby" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="DeA-7F-6uc"/>
+                            <constraint firstItem="xOH-g6-zLc" firstAttribute="top" secondItem="SjC-O4-tRP" secondAttribute="bottom" constant="20" id="FR1-ca-fsv"/>
+                            <constraint firstItem="SjC-O4-tRP" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="FTf-Zv-VR1"/>
+                            <constraint firstItem="dXT-ry-V5z" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="GCX-p7-9a1"/>
+                            <constraint firstItem="0Nh-7f-zby" firstAttribute="top" secondItem="xOH-g6-zLc" secondAttribute="bottom" constant="20" id="LXY-zW-Icl"/>
+                            <constraint firstItem="rgr-je-ehu" firstAttribute="top" secondItem="0Nh-7f-zby" secondAttribute="bottom" constant="32" id="gjG-Ix-qNR"/>
+                            <constraint firstItem="xOH-g6-zLc" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="iII-jc-iSS"/>
+                            <constraint firstItem="dXT-ry-V5z" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="8" id="qfD-5H-9cw"/>
+                            <constraint firstItem="rgr-je-ehu" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="tNl-hB-7tc"/>
+                        </constraints>
                     </view>
+                    <connections>
+                        <outlet property="labelCounter" destination="dXT-ry-V5z" id="UlB-gc-Uff"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
