@@ -20,6 +20,8 @@ class ImageCollector {
     fileprivate let _workingQueue = OperationQueue()
     fileprivate var _imageCollection: [ImageCollectionId: [UIImage]] = [:]
     
+    fileprivate var _imageCollectionInfo: [ImageCollectionId: Int] = [:]
+    
     init() {
         _workingQueue.qualityOfService = .background
         _workingQueue.maxConcurrentOperationCount = 1
@@ -52,6 +54,8 @@ class ImageCollector {
         let loadingOperation = BlockOperation { [weak self] in
             if self?._imageCollection[id] == nil {
                 self?._imageCollection[id] = self?.loadImages(for: id)
+                self?._imageCollectionInfo[id] = self?.countImages(for: id)
+                
             }
         }
         loadingOperation.completionBlock = { [weak self] in
@@ -68,6 +72,29 @@ class ImageCollector {
     func clearAllColections() {
         removeImageCollectorCache()
         _imageCollection.removeAll()
+    }
+    
+    func imageFetcher(for id: ImageCollectionId) -> (() -> [UIImage]) {
+        var offset = 1;
+        
+        return { [weak self] in
+            guard let strongSelf = self else { return [] }
+            
+            let imagesCount = strongSelf.imagesURL(directoryURL: strongSelf.imagesDirectoryURL(collectionId: id)).count
+            var images: [UIImage] = []
+            
+            guard offset <= imagesCount else { return [] }
+            
+            for imagePosition in offset...imagesCount {
+                let url = strongSelf.imageURL(collectionId: id, position: imagePosition)
+                guard let image = UIImage(contentsOfFile: url.path) else {
+                    continue
+                }
+                images.append(image)
+            }
+            offset += 20
+            return images
+        }
     }
     
 }
@@ -88,6 +115,15 @@ fileprivate extension ImageCollector_Private {
         }
         
         return images
+    }
+    
+    func countImages(for id: ImageCollectionId) -> Int {
+        let urls = imagesURL(directoryURL: imagesDirectoryURL(collectionId: id))
+        let count = urls.filter {
+            $0.pathExtension == "png"
+        }.count
+        
+        return count
     }
     
     func saveImage(for id: ImageCollectionId) {

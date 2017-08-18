@@ -19,6 +19,8 @@ class ImageAnimator {
     fileprivate let _imageVideoWriter: ImageVideoWriter
     fileprivate var _images: [UIImage] 
     
+    var diskFetcher: (() -> [UIImage])?
+    
     var frameCounter = 0
     
     static func saveToLibrary(videoURL: URL) {
@@ -86,6 +88,42 @@ class ImageAnimator {
             frameCounter += 1
         }
         
+        // Inform writer all buffers have been written.
+        return true
+    }
+    
+    func appendPixelBuffersFromDisk(writer: ImageVideoWriter) -> Bool {
+        
+        let frameDuration = CMTimeMake(Int64(ImageAnimator.kTimescale / _settings.fps), ImageAnimator.kTimescale)
+        
+        
+        while true {
+            
+            // fetch additional images after images is empty in inner while loop
+            _images = diskFetcher?() ?? []
+            if _images.isEmpty {
+                break
+                
+            }
+            
+            while !_images.isEmpty {
+                
+                if !writer.isReadyForData {
+                    // Inform writer we have more buffers to write.
+                    return false
+                }
+                
+                let image = _images.removeFirst()
+                let presentationTime = CMTimeMultiply(frameDuration, Int32(frameCounter))
+                let success = _imageVideoWriter.addImage(image: image, withPresentationTime: presentationTime)
+                if !success {
+                    fatalError("addImage() failed")
+                }
+                
+                frameCounter += 1
+            }
+            
+        }
         // Inform writer all buffers have been written.
         return true
     }
