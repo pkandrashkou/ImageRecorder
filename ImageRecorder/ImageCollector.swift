@@ -74,25 +74,26 @@ class ImageCollector {
         _imageCollection.removeAll()
     }
     
-    func imageFetcher(for id: ImageCollectionId) -> (() -> [UIImage]) {
-        var offset = 1;
+    func imageFetcher(for id: ImageCollectionId, fetchLimit: Int) -> (() -> [UIImage]) {
+        var fetchCount = 0
         
         return { [weak self] in
             guard let strongSelf = self else { return [] }
             
-            let imagesCount = strongSelf.imagesURL(directoryURL: strongSelf.imagesDirectoryURL(collectionId: id)).count
+            //let imagesCount = strongSelf.imagesURL(directoryURL: strongSelf.imagesDirectoryURL(collectionId: id)).count
             var images: [UIImage] = []
             
-            guard offset <= imagesCount else { return [] }
-            
-            for imagePosition in offset...imagesCount {
-                let url = strongSelf.imageURL(collectionId: id, position: imagePosition)
+            for index in (fetchLimit * fetchCount + 1)..<fetchLimit * (fetchCount + 1) + 1  {
+                print("index: \(index)")
+                let url = strongSelf.imageURL(collectionId: id, position: index)
                 guard let image = UIImage(contentsOfFile: url.path) else {
                     continue
                 }
                 images.append(image)
             }
-            offset += 20
+            
+            fetchCount += 1
+            
             return images
         }
     }
@@ -164,7 +165,12 @@ fileprivate extension ImageCollector_FileManager {
         guard let urls = try? FileManager.default.contentsOfDirectory(at: directoryURL, includingPropertiesForKeys: [.nameKey], options: .skipsHiddenFiles) else {
             return []
         }
-        return urls
+        return urls.sorted { (first, second) -> Bool in
+            guard let firstInt = Int(first.deletingPathExtension().lastPathComponent), let secondInt = Int(second.deletingPathExtension().lastPathComponent) else {
+                return false
+            }
+            return firstInt < secondInt 
+        }
     }
     
     func removeCollectionFolder(id: ImageCollectionId) {

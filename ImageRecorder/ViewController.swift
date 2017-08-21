@@ -37,25 +37,21 @@ class ViewController: UIViewController {
     }
     
     @IBAction func processVideoPressed(_ sender: Any) {
-        imageCollector.images(for: imageId) { [weak self] (images) in
-            guard let `self` = self else {
-                return
-            }
-            let imageAnimator = ImageAnimator(renderSettings: self.settings, images: images)
-            imageAnimator.render() {
+        
+            let imageAnimator = ImageAnimator(renderSettings: self.settings, images: [])
+            imageAnimator.render(diskFetcher: self.imageCollector.imageFetcher(for: self.imageId, fetchLimit: 5), completion: { 
                 
                 let tempPlayer = AVPlayer(url: self.settings.outputURL) 
                 tempPlayer.actionAtItemEnd = .none
                 
                 self.playerViewController.player = tempPlayer
                 
-                
                 self.present(self.playerViewController, animated: true) {
                     self.playerViewController.player!.play()
                 }
-            }
-        }
+            })        
     }
+    
     @IBAction func clearCachePressed(_ sender: Any) {
         imageCollector.clearCollection(for: imageId)
         imageCounter = 0

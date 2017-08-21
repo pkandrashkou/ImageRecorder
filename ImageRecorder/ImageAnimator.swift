@@ -66,6 +66,18 @@ class ImageAnimator {
         
     }
     
+    func render(diskFetcher: @escaping () -> [UIImage], completion: (() -> Void)?) {
+        self.diskFetcher = diskFetcher 
+        // The VideoWriter will fail if a file exists at the URL, so clear it out first.
+        ImageAnimator.removeFileAtURL(fileURL: _settings.outputURL)
+        
+        _imageVideoWriter.start()
+        _imageVideoWriter.render(appendPixelBuffers: appendPixelBuffersFromDisk) {
+            ImageAnimator.saveToLibrary(videoURL: self._settings.outputURL)
+            completion?()
+        }
+    }
+    
     // This is the callback function for ImageVideoWriter.render()
     func appendPixelBuffers(writer: ImageVideoWriter) -> Bool {
         
@@ -95,17 +107,14 @@ class ImageAnimator {
     func appendPixelBuffersFromDisk(writer: ImageVideoWriter) -> Bool {
         
         let frameDuration = CMTimeMake(Int64(ImageAnimator.kTimescale / _settings.fps), ImageAnimator.kTimescale)
-        
-        
         while true {
-            
             // fetch additional images after images is empty in inner while loop
-            _images = diskFetcher?() ?? []
             if _images.isEmpty {
-                break
-                
+                _images = diskFetcher?() ?? []
+                if _images.isEmpty {
+                    break   
+                }    
             }
-            
             while !_images.isEmpty {
                 
                 if !writer.isReadyForData {
@@ -122,7 +131,6 @@ class ImageAnimator {
                 
                 frameCounter += 1
             }
-            
         }
         // Inform writer all buffers have been written.
         return true
