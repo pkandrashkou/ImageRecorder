@@ -13,65 +13,63 @@ import SnapKit
 
 class ViewController: UIViewController {
 
-    let imageCollector = ImageCollector()
-    let imageId = "adadawa2132"
+//    let imageCollector = ImageCollector()
+    let imageId = "ImageCollection"
     
     var imageCounter = 0
     @IBOutlet weak var labelCounter: UILabel!
     
 
-    let settings = ImageAnimatorRenderSettings()
+    let settings = ImageAnimatorRenderSettings(renderId: "RenderGUID")    
     
-    var images: [UIImage] = []    
     let playerViewController = AVPlayerViewController()
     
     @IBAction func saveImage(_ sender: Any) {
-        
-        imageCounter %= 46
-        imageCounter += 1
-        labelCounter.text = "frames: \(imageCounter)"
-        
-        let image = UIImage(named: "Layer \(imageCounter)")!
-        imageCollector.addImage(image, for: imageId)
-        
     }
+    
+    let imageCollector = ImageCollector()
     
     @IBAction func processVideoPressed(_ sender: Any) {
         
-            let imageAnimator = ImageAnimator(renderSettings: self.settings, images: [])
-            imageAnimator.render(diskFetcher: self.imageCollector.imageFetcher(for: self.imageId, fetchLimit: 5), completion: { 
-                
-                let tempPlayer = AVPlayer(url: self.settings.outputURL) 
-                tempPlayer.actionAtItemEnd = .none
-                
-                self.playerViewController.player = tempPlayer
-                
-                self.present(self.playerViewController, animated: true) {
-                    self.playerViewController.player!.play()
-                }
-            })        
+        
+        let imageAnimator = ImageAnimator(renderSettings: self.settings)
+        imageAnimator.render(diskFetcher: imageCollector.imageFetcher(for: self.imageId, fetchLimit: 5), completion: { 
+
+            
+//            let tempPlayer = AVPlayer(url: self.settings.outputURL!) 
+//            tempPlayer.actionAtItemEnd = .none
+//            
+//            self.playerViewController.player = tempPlayer
+//            
+//            self.present(self.playerViewController, animated: true) {
+//                self.playerViewController.player!.play()
+//            }
+        })        
+    }
+    
+    @IBAction func mergeVideosPressed(_ sender: Any) {
+        guard let renderOutputURL = settings.renderOutputURL else {
+            return
+        }
+        let videoComposer = VideoComposer(videoURLs: settings.segmentURLs, outputURL: renderOutputURL)
+        videoComposer.mergeVideos()
     }
     
     @IBAction func clearCachePressed(_ sender: Any) {
-        imageCollector.clearCollection(for: imageId)
+        ImageCollector().clearCollection(for: imageId)
         imageCounter = 0
         labelCounter.text = "frames: \(imageCounter)"
-        try? FileManager.default.removeItem(at: settings.outputURL)
+        try? FileManager.default.removeItem(at: settings.outputDirectoryURL!)
     }
+    
+    
+    let localImageCollector = ImageCollector()
+    
     @IBAction func createBigVideo(_ sender: Any) {
         
-        var images = (1...46).map {
-            UIImage(named: "Layer \($0)")!
-        }
-        
-        images.append(contentsOf: images)
-        
-        for image in images {
-            imageCollector.addImage(image, for: imageId)
-        }
-        
-        
-        
+        for index in 1...157 {
+            let image = UIImage(named: "\(index)")!
+            localImageCollector.addImage(image, for: imageId)
+        }   
     }
 }
-

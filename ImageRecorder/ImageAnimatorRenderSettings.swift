@@ -12,20 +12,79 @@ import AVFoundation
 
 struct ImageAnimatorRenderSettings {
     
+    typealias RenderId = String
+    static let animatorCacheDirectory = "ImageAnimator"
+
+    
     var size: CGSize = CGSize(width: 400, height: 400)
     var fps: Int32 = 6
     var avCodecKey = AVVideoCodecH264
-    var videoFilename = "render3"
-    var videoFilenameExt = "mp4"
+    var videoDirectory = "ImageAnimator"
+    var videoExtension = "mp4"
+    var videoFilename = "render"
+    let renderId: RenderId
     
+    init(renderId: RenderId) {
+        self.renderId = renderId
+    }
     
-    var outputURL: URL {
+    var outputDirectoryURL: URL? {
         // Use the CachesDirectory so the rendered video file sticks around as long as we need it to.
         // Using the CachesDirectory ensures the file won't be included in a backup of the app.
         let fileManager = FileManager.default
-        if let tmpDirURL = try? fileManager.url(for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: true) {
-            return tmpDirURL.appendingPathComponent(videoFilename).appendingPathExtension(videoFilenameExt)
+        guard let cacheDirectory = try? fileManager.url(for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: true) else  {
+            return nil
         }
-        fatalError("URLForDirectory() failed")
+        let videoDirectoryURL = cacheDirectory.appendingPathComponent(ImageAnimatorRenderSettings.animatorCacheDirectory).appendingPathComponent(renderId)
+        try? FileManager.default.createDirectory(at: videoDirectoryURL, withIntermediateDirectories: true, attributes: nil)
+        
+        return videoDirectoryURL
+    }
+    
+    var segmentOutputURL: URL? {
+        guard let outputURL = outputDirectoryURL else {
+            return nil
+        }
+        guard let lastURL = segmentURLs.last,
+            let lastVideoIndex = Int(lastURL.deletingPathExtension().lastPathComponent) else {
+            return nil
+        }
+        let segmentURL = outputURL.appendingPathComponent("/\(lastVideoIndex + 1).\(videoExtension)")
+        return segmentURL
+    }
+    
+    var renderOutputURL: URL? {
+        guard let outputURL = outputDirectoryURL else {
+            return nil
+        }
+        let segmentURL = outputURL.appendingPathComponent("/\(renderId).\(videoExtension)")
+        return segmentURL
+    }
+    
+    func countSegments() -> Int {
+        let urls = segmentURLs
+        let count = urls.filter {
+            $0.pathExtension == videoExtension
+            }.count
+        
+        return count
+    }
+    
+    var segmentURLs: [URL] {
+        guard let outputDirectoryURL = outputDirectoryURL, let urls = try? FileManager.default.contentsOfDirectory(at: outputDirectoryURL, includingPropertiesForKeys: [.nameKey], options: .skipsHiddenFiles) else {
+            return []
+        }
+        let numberURLs = urls.filter { (url) -> Bool in
+            let numberNameRepresentation = Int(url.deletingPathExtension().lastPathComponent)
+            return numberNameRepresentation != nil 
+        }
+        
+        return numberURLs.sorted { (first, second) -> Bool in
+            guard let firstInt = Int(first.deletingPathExtension().lastPathComponent),
+                let secondInt = Int(second.deletingPathExtension().lastPathComponent) else {
+                    return false
+            }
+            return firstInt < secondInt 
+        }
     }
 }

@@ -92,7 +92,7 @@ class ImageVideoWriter {
             return assetWriter
         }
         
-        videoWriter = createAssetWriter(outputURL: renderSettings.outputURL)
+        videoWriter = createAssetWriter(outputURL: renderSettings.segmentOutputURL!)
         videoWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo, outputSettings: avOutputSettings)
         
         if videoWriter.canAdd(videoWriterInput) {

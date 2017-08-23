@@ -29,39 +29,18 @@ class ImageCollector {
 
     
     func addImage(_ image: UIImage, for id: ImageCollectionId) {
-        let loadingOperation = BlockOperation { [weak self] in
-            if self?._imageCollection[id] == nil {
-                self?._imageCollection[id] = self?.loadImages(for: id)
-            }
-        }
-        
-        let appendOperation = BlockOperation { [weak self] in 
-            self?._imageCollection[id]?.append(image)
-        }
-        
         let saveOpeation = BlockOperation { [weak self] in
-            self?.saveImage(for: id)
+            self?.saveImage(image, for: id)
         }
-        
-        appendOperation.addDependency(loadingOperation)
-        saveOpeation.addDependency(appendOperation)
         _workingQueue.addOperation(saveOpeation)
-        _workingQueue.addOperation(appendOperation)
-        _workingQueue.addOperation(loadingOperation)
+
     }
     
-    func images(for id: ImageCollectionId, completion: @escaping ([UIImage]) -> Void) {        
-        let loadingOperation = BlockOperation { [weak self] in
-            if self?._imageCollection[id] == nil {
-                self?._imageCollection[id] = self?.loadImages(for: id)
-                self?._imageCollectionInfo[id] = self?.countImages(for: id)
-                
-            }
+    func undoImage(_ image: UIImage, for id: ImageCollectionId) {
+        let removeOperation = BlockOperation { [weak self] in
+            self?.removeImage(image, for: id)
         }
-        loadingOperation.completionBlock = { [weak self] in
-            completion(self?._imageCollection[id] ?? [])
-        }
-        _workingQueue.addOperation(loadingOperation)
+        _workingQueue.addOperation(removeOperation)
     }
     
     func clearCollection(for id: ImageCollectionId) {
@@ -78,26 +57,26 @@ class ImageCollector {
         var fetchCount = 0
         
         return { [weak self] in
-            guard let strongSelf = self else { return [] }
-            
-            //let imagesCount = strongSelf.imagesURL(directoryURL: strongSelf.imagesDirectoryURL(collectionId: id)).count
+            guard let strongSelf = self else { 
+                return []
+            }
+
             var images: [UIImage] = []
             
-            for index in (fetchLimit * fetchCount + 1)..<fetchLimit * (fetchCount + 1) + 1  {
-                print("index: \(index)")
-                let url = strongSelf.imageURL(collectionId: id, position: index)
-                guard let image = UIImage(contentsOfFile: url.path) else {
+            for index in (fetchLimit * fetchCount)..<fetchLimit * (fetchCount + 1)  {
+                let urls = strongSelf.imageURLs(collectionId: id)
+                guard urls.indices.contains(index), let image = UIImage(contentsOfFile: urls[index].path) else {
+                    print("does not exist index: \(index)")
                     continue
                 }
+                print("index: \(index)")
                 images.append(image)
             }
             
             fetchCount += 1
-            
             return images
         }
     }
-    
 }
 
 
@@ -105,7 +84,7 @@ fileprivate typealias ImageCollector_Private = ImageCollector
 fileprivate extension ImageCollector_Private {
     
     func loadImages(for id: ImageCollectionId) -> [UIImage] {
-        let urls = imagesURL(directoryURL: imagesDirectoryURL(collectionId: id))
+        let urls = imageURLs(collectionId: id)
         var images: [UIImage] = []
         
         for url in urls {
@@ -117,21 +96,10 @@ fileprivate extension ImageCollector_Private {
         
         return images
     }
-    
-    func countImages(for id: ImageCollectionId) -> Int {
-        let urls = imagesURL(directoryURL: imagesDirectoryURL(collectionId: id))
-        let count = urls.filter {
-            $0.pathExtension == "png"
-        }.count
-        
-        return count
-    }
-    
-    func saveImage(for id: ImageCollectionId) {
-        guard let selectedImage = _imageCollection[id]?.last, let imagePosition = _imageCollection[id]?.count else {
-            return
-        }
-        let imageData = UIImagePNGRepresentation(selectedImage)
+
+    func saveImage(_ image: UIImage, for id: ImageCollectionId) {
+        let imagePosition = countImages(for: id)
+        let imageData = UIImagePNGRepresentation(image)
         let imageURL = self.imageURL(collectionId: id, position: imagePosition)
         
         try? FileManager.default.createDirectory(atPath: imageURL.deletingLastPathComponent().path, withIntermediateDirectories: true, attributes: nil)
@@ -141,6 +109,17 @@ fileprivate extension ImageCollector_Private {
         } catch {
             print(error)
         }   
+    }
+    
+    func removeImage(_ image: UIImage, for id: ImageCollectionId) {
+        let imagePosition = countImages(for: id) - 1
+        let imageURL = self.imageURL(collectionId: id, position: imagePosition)
+        do {
+            try FileManager.default.removeItem(at: imageURL)
+        } catch {
+            print(error)
+        }   
+
     }
 }
 
@@ -161,8 +140,8 @@ fileprivate extension ImageCollector_FileManager {
         return directoryURL
     }
     
-    func imagesURL(directoryURL: URL) -> [URL] {
-        guard let urls = try? FileManager.default.contentsOfDirectory(at: directoryURL, includingPropertiesForKeys: [.nameKey], options: .skipsHiddenFiles) else {
+    func imageURLs(collectionId: ImageCollectionId) -> [URL] {
+        guard let urls = try? FileManager.default.contentsOfDirectory(at: imagesDirectoryURL(collectionId: collectionId), includingPropertiesForKeys: [.nameKey], options: .skipsHiddenFiles) else {
             return []
         }
         return urls.sorted { (first, second) -> Bool in
@@ -171,6 +150,15 @@ fileprivate extension ImageCollector_FileManager {
             }
             return firstInt < secondInt 
         }
+    }
+    
+    func countImages(for id: ImageCollectionId) -> Int {
+        let urls = imageURLs(collectionId: id)
+        let count = urls.filter {
+            $0.pathExtension == "png"
+            }.count
+        
+        return count
     }
     
     func removeCollectionFolder(id: ImageCollectionId) {

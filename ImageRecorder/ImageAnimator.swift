@@ -15,13 +15,12 @@ class ImageAnimator {
     // Apple suggests a timescale of 600 because it's a multiple of standard video rates 24, 25, 30, 60 fps etc.
     static let kTimescale: Int32 = 600
     
-    fileprivate let _settings: ImageAnimatorRenderSettings
-    fileprivate let _imageVideoWriter: ImageVideoWriter
-    fileprivate var _images: [UIImage] 
+    fileprivate let settings: ImageAnimatorRenderSettings
+    fileprivate let imageVideoWriter: ImageVideoWriter
     
-    var diskFetcher: (() -> [UIImage])?
+    fileprivate var diskFetcher: (() -> [UIImage])?
     
-    var frameCounter = 0
+    fileprivate var frameCounter = 0
     
     static func saveToLibrary(videoURL: URL) {
         PHPhotoLibrary.requestAuthorization { status in
@@ -47,84 +46,49 @@ class ImageAnimator {
         }
     }
     
-    init(renderSettings: ImageAnimatorRenderSettings, images: [UIImage]) {
-        _settings = renderSettings
-        _imageVideoWriter = ImageVideoWriter(renderSettings: _settings)
-        _images = images
+    init(renderSettings: ImageAnimatorRenderSettings) {
+        settings = renderSettings
+        imageVideoWriter = ImageVideoWriter(renderSettings: settings)
     }
-    
-    func render(completion: (() -> Void)?) {
-        
-        // The VideoWriter will fail if a file exists at the URL, so clear it out first.
-        ImageAnimator.removeFileAtURL(fileURL: _settings.outputURL)
-        
-        _imageVideoWriter.start()
-        _imageVideoWriter.render(appendPixelBuffers: appendPixelBuffers) {
-            ImageAnimator.saveToLibrary(videoURL: self._settings.outputURL)
-            completion?()
-        }
-        
-    }
-    
+
     func render(diskFetcher: @escaping () -> [UIImage], completion: (() -> Void)?) {
+        guard let segmentOutputURL = settings.segmentOutputURL else {
+            return
+        }
         self.diskFetcher = diskFetcher 
         // The VideoWriter will fail if a file exists at the URL, so clear it out first.
-        ImageAnimator.removeFileAtURL(fileURL: _settings.outputURL)
+        ImageAnimator.removeFileAtURL(fileURL: segmentOutputURL)
         
-        _imageVideoWriter.start()
-        _imageVideoWriter.render(appendPixelBuffers: appendPixelBuffersFromDisk) {
-            ImageAnimator.saveToLibrary(videoURL: self._settings.outputURL)
+        imageVideoWriter.start()
+        imageVideoWriter.render(appendPixelBuffers: appendPixelBuffers) {
+            ImageAnimator.saveToLibrary(videoURL: segmentOutputURL)
             completion?()
         }
     }
-    
-    // This is the callback function for ImageVideoWriter.render()
+        
     func appendPixelBuffers(writer: ImageVideoWriter) -> Bool {
         
-        let frameDuration = CMTimeMake(Int64(ImageAnimator.kTimescale / _settings.fps), ImageAnimator.kTimescale)
+        let frameDuration = CMTimeMake(Int64(ImageAnimator.kTimescale / settings.fps), ImageAnimator.kTimescale)
         
-        while !_images.isEmpty {
-            
-            if !writer.isReadyForData {
-                // Inform writer we have more buffers to write.
-                return false
-            }
-            
-            let image = _images.removeFirst()
-            let presentationTime = CMTimeMultiply(frameDuration, Int32(frameCounter))
-            let success = _imageVideoWriter.addImage(image: image, withPresentationTime: presentationTime)
-            if !success {
-                fatalError("addImage() failed")
-            }
-            
-            frameCounter += 1
-        }
-        
-        // Inform writer all buffers have been written.
-        return true
-    }
-    
-    func appendPixelBuffersFromDisk(writer: ImageVideoWriter) -> Bool {
-        
-        let frameDuration = CMTimeMake(Int64(ImageAnimator.kTimescale / _settings.fps), ImageAnimator.kTimescale)
+        var images: [UIImage] = []
         while true {
             // fetch additional images after images is empty in inner while loop
-            if _images.isEmpty {
-                _images = diskFetcher?() ?? []
-                if _images.isEmpty {
+            if images.isEmpty {
+                images = diskFetcher?() ?? []
+                if images.isEmpty {
                     break   
                 }    
             }
-            while !_images.isEmpty {
+            while !images.isEmpty {
                 
                 if !writer.isReadyForData {
                     // Inform writer we have more buffers to write.
                     return false
                 }
                 
-                let image = _images.removeFirst()
+                let image = images.removeFirst()
                 let presentationTime = CMTimeMultiply(frameDuration, Int32(frameCounter))
-                let success = _imageVideoWriter.addImage(image: image, withPresentationTime: presentationTime)
+                let success = imageVideoWriter.addImage(image: image, withPresentationTime: presentationTime)
                 if !success {
                     fatalError("addImage() failed")
                 }
@@ -134,6 +98,10 @@ class ImageAnimator {
         }
         // Inform writer all buffers have been written.
         return true
+    }
+    
+    func mergeVideoFragments() {
+        
     }
     
 }
