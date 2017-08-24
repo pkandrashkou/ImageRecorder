@@ -221,6 +221,7 @@
 		86CFA4C91F45CFBB00C4B1A4 /* Layer 9.png in Resources */ = {isa = PBXBuildFile; fileRef = 86CFA49B1F45CFBB00C4B1A4 /* Layer 9.png */; };
 		86CFA4D51F46DE6900C4B1A4 /* ImageCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86CFA4D41F46DE6900C4B1A4 /* ImageCollector.swift */; };
 		86DE96A51F4EC4A400558CF5 /* ImageDiskFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86DE96A41F4EC4A400558CF5 /* ImageDiskFetcher.swift */; };
+		86DE96AE1F4EF65400558CF5 /* ImageRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86DE96AD1F4EF65400558CF5 /* ImageRecorder.swift */; };
 		969EF9AB46FBC63E1F0EDD98 /* Pods_ImageRecorder.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 82261AC7599B7FC2A9D72DFA /* Pods_ImageRecorder.framework */; };
 /* End PBXBuildFile section */
 
@@ -442,6 +443,7 @@
 		86CFA49B1F45CFBB00C4B1A4 /* Layer 9.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Layer 9.png"; sourceTree = "<group>"; };
 		86CFA4D41F46DE6900C4B1A4 /* ImageCollector.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageCollector.swift; sourceTree = "<group>"; };
 		86DE96A41F4EC4A400558CF5 /* ImageDiskFetcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageDiskFetcher.swift; sourceTree = "<group>"; };
+		86DE96AD1F4EF65400558CF5 /* ImageRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageRecorder.swift; sourceTree = "<group>"; };
 		C635F5F07A5CE1DDDA7C3725 /* Pods-ImageRecorder.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ImageRecorder.debug.xcconfig"; path = "Pods/Target Support Files/Pods-ImageRecorder/Pods-ImageRecorder.debug.xcconfig"; sourceTree = "<group>"; };
 		DBD7AFE4EFF141FE5EC5B621 /* Pods-ImageRecorder.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ImageRecorder.release.xcconfig"; path = "Pods/Target Support Files/Pods-ImageRecorder/Pods-ImageRecorder.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -664,6 +666,7 @@
 				86CFA46B1F45CA6900C4B1A4 /* ImageAnimatorRenderSettings.swift */,
 				8687A5051F4DBFCD0024497E /* VideoComposer.swift */,
 				86DE96A41F4EC4A400558CF5 /* ImageDiskFetcher.swift */,
+				86DE96AD1F4EF65400558CF5 /* ImageRecorder.swift */,
 				86076F901F4B0DD700B3785A /* A4B9FED4-A3B2-49E9-AE90-8E3D712233A6 */,
 				86CFA46D1F45CFBB00C4B1A4 /* gif layers */,
 			);
@@ -1058,6 +1061,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				86DE96AE1F4EF65400558CF5 /* ImageRecorder.swift in Sources */,
 				86DE96A51F4EC4A400558CF5 /* ImageDiskFetcher.swift in Sources */,
 				86CFA46A1F45CA0900C4B1A4 /* ImageVideoWriter.swift in Sources */,
 				86CFA4681F45BC7700C4B1A4 /* ImageAnimator.swift in Sources */,

@@ -21,7 +21,6 @@ struct ImageAnimatorRenderSettings {
     var avCodecKey = AVVideoCodecH264
     var videoDirectory = "ImageAnimator"
     var videoExtension = "mp4"
-    var videoFilename = "render"
     let renderId: RenderId
     
     init(renderId: RenderId) {
@@ -45,7 +44,7 @@ struct ImageAnimatorRenderSettings {
         guard let outputURL = outputDirectoryURL else {
             return nil
         }
-        guard let lastURL = segmentURLs.last else {
+        guard let lastURL = segmentURLs().last else {
             return outputURL.appendingPathComponent("/\(0).\(videoExtension)")
         }
         guard let lastVideoIndex = Int(lastURL.deletingPathExtension().lastPathComponent) else {
@@ -64,7 +63,7 @@ struct ImageAnimatorRenderSettings {
     }
     
     var countSegments: Int {
-        let urls = segmentURLs
+        let urls = segmentURLs()
         let count = urls.filter {
             $0.pathExtension == videoExtension
             }.count
@@ -72,7 +71,7 @@ struct ImageAnimatorRenderSettings {
         return count
     }
     
-    var segmentURLs: [URL] {
+    func segmentURLs() -> [URL] {
         guard let outputDirectoryURL = outputDirectoryURL, let urls = try? FileManager.default.contentsOfDirectory(at: outputDirectoryURL, includingPropertiesForKeys: [.nameKey], options: .skipsHiddenFiles) else {
             return []
         }

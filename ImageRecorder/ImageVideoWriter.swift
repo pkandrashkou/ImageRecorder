@@ -123,17 +123,18 @@ class ImageVideoWriter {
         precondition(videoWriter != nil, "Call start() to initialze the writer")
         
         let queue = DispatchQueue(label: "imagevideowriter.inputqueue")
-        videoWriterInput.requestMediaDataWhenReady(on: queue) {
-            let isFinished = appendPixelBuffers?(self) ?? false
+        videoWriterInput.requestMediaDataWhenReady(on: queue) { [weak self] in
+            guard let strongSelf = self else { 
+                return
+            }
+            let isFinished = appendPixelBuffers?(strongSelf) ?? false
             if isFinished {
-                self.videoWriterInput.markAsFinished()
-                self.videoWriter.finishWriting() {
+                strongSelf.videoWriterInput.markAsFinished()
+                strongSelf.videoWriter.finishWriting() {
                     DispatchQueue.main.async {
                         completion?()
                     }
                 }
-            } else {
-                // Fall through. The closure will be called again when the writer is ready.
             }
         }
     }
@@ -145,6 +146,4 @@ class ImageVideoWriter {
         let pixelBuffer = ImageVideoWriter.pixelBufferFromImage(image: image, pixelBufferPool: pixelBufferAdaptor.pixelBufferPool!, size: renderSettings.size)
         return pixelBufferAdaptor.append(pixelBuffer, withPresentationTime: presentationTime)
     }
-    
 }
-

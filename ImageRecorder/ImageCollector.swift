@@ -18,10 +18,20 @@ class ImageCollector {
     
     fileprivate let collectionId: ImageCollectionId
     
-    private let workingQueue = OperationQueue()
-    private var imageCollection: [ImageCollectionId: [UIImage]] = [:]
+
+    init(collectionId: ImageCollectionId) {
+        self.collectionId = collectionId
+    }
     
-    var imageURLs: [URL] {
+    func addImage(_ image: UIImage) {
+        saveImage(image)
+    }
+    
+    func removeImage(_ image: UIImage) {
+        removeCachedImage(image)
+    }
+    
+    func imageURLs() -> [URL] {
         guard let urls = try? FileManager.default.contentsOfDirectory(at: imagesDirectoryURL, includingPropertiesForKeys: [.nameKey], options: .skipsHiddenFiles) else {
             return []
         }
@@ -31,26 +41,6 @@ class ImageCollector {
             }
             return firstInt < secondInt 
         }
-    }
-
-    init(collectionId: ImageCollectionId) {
-        self.collectionId = collectionId
-        workingQueue.qualityOfService = .background
-        workingQueue.maxConcurrentOperationCount = 1
-    }
-    
-    func addImage(_ image: UIImage) {
-        let saveOpeation = BlockOperation { [weak self] in
-            self?.saveImage(image)
-        }
-        workingQueue.addOperation(saveOpeation)
-    }
-    
-    func removeImage(_ image: UIImage) {
-        let removeOperation = BlockOperation { [weak self] in
-            self?.removeCachedImage(image)
-        }
-        workingQueue.addOperation(removeOperation)
     }
     
     func clearCollection() {
@@ -67,8 +57,8 @@ fileprivate extension ImageCollector_Private {
 
     func saveImage(_ image: UIImage) {
         let imagePosition = countImages
-        let resizedImage = resizeImage(image, to: CGSize(width: 400, height: 400))!
-        let imageData = UIImagePNGRepresentation(resizedImage)
+        let resizedImage = resizeImage(image, to: CGSize(width: 200, height: 200))!
+        let imageData = UIImageJPEGRepresentation(resizedImage, 0)
         let imageURL = self.imageURL(position: imagePosition)
         
         try? FileManager.default.createDirectory(atPath: imageURL.deletingLastPathComponent().path, withIntermediateDirectories: true, attributes: nil)
@@ -112,8 +102,7 @@ fileprivate extension ImageCollector_FileManager {
     }
     
     var countImages: Int {
-        let urls = imageURLs
-        let count = urls.filter {
+        let count = imageURLs().filter {
             $0.pathExtension == "jpeg"
             }.count
         

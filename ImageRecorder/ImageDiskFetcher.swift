@@ -11,11 +11,11 @@ import UIKit
 
 class ImageDiskFetcher {
     
-    private let imageURLs: [URL]
+    private let imageURLs: () -> [URL]
     private var fetchCounter = 0
     private let fetchLimit: Int
     
-    init(imageURLs: [URL], fetchLimit: Int) {
+    init(imageURLs: @escaping () -> [URL], fetchLimit: Int) {
         self.imageURLs = imageURLs
         self.fetchLimit = fetchLimit
     }
@@ -23,16 +23,23 @@ class ImageDiskFetcher {
     func fetch() -> [UIImage] {
         var images: [UIImage] = []
         for index in (fetchLimit * fetchCounter)..<fetchLimit * (fetchCounter + 1)  {
-            let urls = self.imageURLs
-            guard urls.indices.contains(index), let image = UIImage(contentsOfFile: urls[index].path) else {
-                print("does not exist index: \(index)")
-                continue
+            autoreleasepool {
+                let urls = self.imageURLs()
+                if urls.indices.contains(index), let image = UIImage(contentsOfFile: urls[index].path) {
+                    print("index: \(index)")
+                    images.append(image)
+                } else {
+                    print("does not exist index: \(index)")
+                }
+                
             }
-            print("index: \(index)")
-            images.append(image)
         }
         
         fetchCounter += 1
         return images
+    }
+    
+    func reset() {
+        fetchCounter = 0
     }
 }

@@ -54,7 +54,8 @@ class ImageAnimator {
         }
         // The VideoWriter will fail if a file exists at the URL, so clear it out first.
         ImageAnimator.removeFileAtURL(fileURL: segmentOutputURL)
-        
+        diskFetcher.reset()
+        frameCounter = 0
         imageVideoWriter.start()
         imageVideoWriter.render(appendPixelBuffers: appendPixelBuffers) {
             ImageAnimator.saveToLibrary(videoURL: segmentOutputURL)
@@ -68,12 +69,14 @@ class ImageAnimator {
         var images: [UIImage] = []
         while true {
             // fetch additional images after images is empty in inner while loop
+            
             if images.isEmpty {
                 images = diskFetcher.fetch()
                 if images.isEmpty {
                     break   
                 }    
             }
+            
             while !images.isEmpty {
                 
                 if !writer.isReadyForData {
@@ -81,14 +84,15 @@ class ImageAnimator {
                     return false
                 }
                 
-                let image = images.removeFirst()
-                let presentationTime = CMTimeMultiply(frameDuration, Int32(frameCounter))
-                let success = imageVideoWriter.addImage(image: image, withPresentationTime: presentationTime)
-                if !success {
-                    fatalError("addImage() failed")
+                autoreleasepool {
+                    let image = images.removeFirst()
+                    let presentationTime = CMTimeMultiply(frameDuration, Int32(frameCounter))
+                    let _ = imageVideoWriter.addImage(image: image, withPresentationTime: presentationTime)
                 }
                 
+                
                 frameCounter += 1
+                
             }
         }
         // Inform writer all buffers have been written.
