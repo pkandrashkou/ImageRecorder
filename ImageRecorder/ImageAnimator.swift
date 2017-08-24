@@ -15,13 +15,14 @@ class ImageAnimator {
     // Apple suggests a timescale of 600 because it's a multiple of standard video rates 24, 25, 30, 60 fps etc.
     static let kTimescale: Int32 = 600
     
-    fileprivate let settings: ImageAnimatorRenderSettings
-    fileprivate let imageVideoWriter: ImageVideoWriter
+    private let settings: ImageAnimatorRenderSettings
+    private let imageVideoWriter: ImageVideoWriter
     
-    fileprivate var diskFetcher: ImageDiskFetcher
+    private var diskFetcher: ImageDiskFetcher
     
-    fileprivate var frameCounter = 0
+    private var frameCounter = 0
     
+    //temporary function to check progress
     static func saveToLibrary(videoURL: URL) {
         PHPhotoLibrary.requestAuthorization { status in
             guard status == .authorized else {
@@ -38,11 +39,7 @@ class ImageAnimator {
     }
     
     static func removeFileAtURL(fileURL: URL) {
-        do {
-            try FileManager.default.removeItem(atPath: fileURL.path)
-        } catch _ as NSError {
-            // Assume file doesn't exist.
-        }
+        try? FileManager.default.removeItem(atPath: fileURL.path)
     }
     
     init(renderSettings: ImageAnimatorRenderSettings, diskFetcher: ImageDiskFetcher) {

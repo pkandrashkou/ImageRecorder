@@ -63,7 +63,7 @@ struct ImageAnimatorRenderSettings {
         return segmentURL
     }
     
-    func countSegments() -> Int {
+    var countSegments: Int {
         let urls = segmentURLs
         let count = urls.filter {
             $0.pathExtension == videoExtension

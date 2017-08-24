@@ -10,7 +10,6 @@ import UIKit
 import Foundation
 
 
-
 class ImageCollector {
     
     typealias ImageCollectionId = String
