@@ -28,7 +28,7 @@ class ImageVideoWriter {
         
         let status = CVPixelBufferPoolCreatePixelBuffer(kCFAllocatorDefault, pixelBufferPool, &pixelBufferOut)
         if status != kCVReturnSuccess {
-            fatalError("CVPixelBufferPoolCreatePixelBuffer() failed")
+            print("CVPixelBufferPoolCreatePixelBuffer() failed")
         }
         
         let pixelBuffer = pixelBufferOut!
@@ -80,32 +80,37 @@ class ImageVideoWriter {
                     sourcePixelBufferAttributes: sourcePixelBufferAttributesDictionary)
         }
         
-        func createAssetWriter(outputURL: URL) -> AVAssetWriter {
+        func createAssetWriter(outputURL: URL) -> AVAssetWriter? {
             guard let assetWriter = try? AVAssetWriter(outputURL: outputURL, fileType: AVFileTypeMPEG4) else {
-                fatalError("AVAssetWriter() failed")
+                print("AVAssetWriter() failed")
+                return nil
             }
             
             guard assetWriter.canApply(outputSettings: avOutputSettings, forMediaType: AVMediaTypeVideo) else {
-                fatalError("canApplyOutputSettings() failed")
+                print("canApplyOutputSettings() failed")
+                return nil
             }
-            
             return assetWriter
         }
         
-        videoWriter = createAssetWriter(outputURL: renderSettings.segmentOutputURL!)
+        guard let outputURL = renderSettings.segmentOutputURL, let videoWriter = createAssetWriter(outputURL: outputURL) else {
+            print("createAssetWriter() failed")
+            return
+        }
+        self.videoWriter = videoWriter
         videoWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo, outputSettings: avOutputSettings)
         
         if videoWriter.canAdd(videoWriterInput) {
             videoWriter.add(videoWriterInput)
         } else {
-            fatalError("canAddInput() returned false")
+            print("canAddInput() returned false")
         }
         
         // The pixel buffer adaptor must be created before we start writing.
         createPixelBufferAdaptor()
         
         if videoWriter.startWriting() == false {
-            fatalError("startWriting() failed")
+            print("startWriting() failed")
         }
         
         videoWriter.startSession(atSourceTime: kCMTimeZero)
