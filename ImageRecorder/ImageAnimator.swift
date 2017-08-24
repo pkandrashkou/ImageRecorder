@@ -18,7 +18,7 @@ class ImageAnimator {
     fileprivate let settings: ImageAnimatorRenderSettings
     fileprivate let imageVideoWriter: ImageVideoWriter
     
-    fileprivate var diskFetcher: (() -> [UIImage])?
+    fileprivate var diskFetcher: ImageDiskFetcher
     
     fileprivate var frameCounter = 0
     
@@ -27,7 +27,6 @@ class ImageAnimator {
             guard status == .authorized else {
                 return
             }
-            
             PHPhotoLibrary.shared().performChanges({
                 PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: videoURL)
             }) { success, error in
@@ -46,16 +45,16 @@ class ImageAnimator {
         }
     }
     
-    init(renderSettings: ImageAnimatorRenderSettings) {
+    init(renderSettings: ImageAnimatorRenderSettings, diskFetcher: ImageDiskFetcher) {
         settings = renderSettings
         imageVideoWriter = ImageVideoWriter(renderSettings: settings)
+        self.diskFetcher = diskFetcher
     }
 
-    func render(diskFetcher: @escaping () -> [UIImage], completion: (() -> Void)?) {
+    func render(completion: (() -> Void)?) {
         guard let segmentOutputURL = settings.segmentOutputURL else {
             return
         }
-        self.diskFetcher = diskFetcher 
         // The VideoWriter will fail if a file exists at the URL, so clear it out first.
         ImageAnimator.removeFileAtURL(fileURL: segmentOutputURL)
         
@@ -67,14 +66,13 @@ class ImageAnimator {
     }
         
     func appendPixelBuffers(writer: ImageVideoWriter) -> Bool {
-        
         let frameDuration = CMTimeMake(Int64(ImageAnimator.kTimescale / settings.fps), ImageAnimator.kTimescale)
         
         var images: [UIImage] = []
         while true {
             // fetch additional images after images is empty in inner while loop
             if images.isEmpty {
-                images = diskFetcher?() ?? []
+                images = diskFetcher.fetch()
                 if images.isEmpty {
                     break   
                 }    
@@ -99,9 +97,4 @@ class ImageAnimator {
         // Inform writer all buffers have been written.
         return true
     }
-    
-    func mergeVideoFragments() {
-        
-    }
-    
 }

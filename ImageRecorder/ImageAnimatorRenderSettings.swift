@@ -45,12 +45,14 @@ struct ImageAnimatorRenderSettings {
         guard let outputURL = outputDirectoryURL else {
             return nil
         }
-        guard let lastURL = segmentURLs.last,
-            let lastVideoIndex = Int(lastURL.deletingPathExtension().lastPathComponent) else {
+        guard let lastURL = segmentURLs.last else {
+            return outputURL.appendingPathComponent("/\(0).\(videoExtension)")
+        }
+        guard let lastVideoIndex = Int(lastURL.deletingPathExtension().lastPathComponent) else {
             return nil
         }
-        let segmentURL = outputURL.appendingPathComponent("/\(lastVideoIndex + 1).\(videoExtension)")
-        return segmentURL
+        
+        return outputURL.appendingPathComponent("/\(lastVideoIndex + 1).\(videoExtension)")
     }
     
     var renderOutputURL: URL? {

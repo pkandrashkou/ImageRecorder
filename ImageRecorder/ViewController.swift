@@ -27,13 +27,15 @@ class ViewController: UIViewController {
     @IBAction func saveImage(_ sender: Any) {
     }
     
-    let imageCollector = ImageCollector()
+    lazy var imageCollector: ImageCollector = {
+        return ImageCollector(collectionId: self.imageId) 
+    }()
     
     @IBAction func processVideoPressed(_ sender: Any) {
         
-        
-        let imageAnimator = ImageAnimator(renderSettings: self.settings)
-        imageAnimator.render(diskFetcher: imageCollector.imageFetcher(for: self.imageId, fetchLimit: 5), completion: { 
+        let diskFetcher = ImageDiskFetcher(imageURLs: imageCollector.imageURLs, fetchLimit: 5)
+        let imageAnimator = ImageAnimator(renderSettings: self.settings, diskFetcher: diskFetcher)
+        imageAnimator.render(completion: { 
 
             
 //            let tempPlayer = AVPlayer(url: self.settings.outputURL!) 
@@ -56,20 +58,23 @@ class ViewController: UIViewController {
     }
     
     @IBAction func clearCachePressed(_ sender: Any) {
-        ImageCollector().clearCollection(for: imageId)
+        ImageCollector(collectionId: imageId).clearCollection()
         imageCounter = 0
         labelCounter.text = "frames: \(imageCounter)"
         try? FileManager.default.removeItem(at: settings.outputDirectoryURL!)
     }
     
-    
-    let localImageCollector = ImageCollector()
+
+    lazy var localImageCollector: ImageCollector = {
+        return ImageCollector(collectionId: self.imageId) 
+    }()
     
     @IBAction func createBigVideo(_ sender: Any) {
         
         for index in 1...157 {
+            print("populating image at \(index)")
             let image = UIImage(named: "\(index)")!
-            localImageCollector.addImage(image, for: imageId)
+            localImageCollector.addImage(image)
         }   
     }
 }

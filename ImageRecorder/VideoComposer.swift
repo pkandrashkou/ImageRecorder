@@ -44,6 +44,8 @@ class VideoComposer {
             insertTime = insertTime + video.duration
         }
         
+        
+        try? FileManager.default.removeItem(at: outputURL)
         let exporter = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality)
         exporter?.outputURL = outputURL
         exporter?.outputFileType = AVFileTypeMPEG4
